@@ -1,0 +1,21 @@
+{
+    "name": "veditor-api",
+    "version": "1.0.0",
+    "description": "api for veditor app",
+    "main": "index.js",
+    "scripts": {
+        "start": "nodemon --experimental-wasm-threads --experimental-wasm-bulk-memory",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Elijah",
+    "license": "ISC",
+    "dependencies": {
+        "@ffmpeg/core": "^0.10.0",
+        "@ffmpeg/ffmpeg": "^0.10.1",
+        "cors": "^2.8.5",
+        "express": "^4.18.1",
+        "multer": "^1.4.4",
+        "nodemon": "^2.0.16",
+        "p-queue": "^7.2.0"
+    }
+}
