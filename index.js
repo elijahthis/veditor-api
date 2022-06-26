@@ -3,13 +3,25 @@ const http = require("http");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
-const { transcodeVideo } = require("./transcode");
+const { transcodeVideo, trimVideo } = require("./transcode");
 
 const port = process.env.PORT || 3211;
 
 // VERY IMPORTANT: WHEN RUNNING IN NODE, USE THESE FLAGS:--experimental-wasm-threads --experimental-wasm-bulk-memory
 
 const app = express();
+
+const fileStorageEngine = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "./storage");
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + "--" + file.originalname);
+    },
+});
+
+const uploads = multer({ storage: fileStorageEngine });
+
 app.use(cors());
 app.use(express.json());
 app.use((_, res, next) => {
@@ -24,19 +36,62 @@ app.get("/", (req, res) => {
     res.send({ message: "Mind your business" });
 });
 
-app.post("/upload", async (req, res) => {
+app.post("/upload", uploads.single("newVideo"), async (req, res) => {
     try {
-        if (req.file) {
+        console.log(req.file);
+        res.send({ filename: req.file.filename, filepath: req.file.path });
+    } catch (e) {
+        console.log(e);
+        throw e;
+    }
+});
+
+app.post("/transcode", async (req, res) => {
+    // res.send({ endpoint: "trim endpoint" });
+    try {
+        if (!req.body.filename) {
             console.log(req);
             throw new Error("no file data");
         }
-        // await transcodeVideo(req.file.originalname, req.file.path);
-        console.log(req.body);
-        await transcodeVideo(req.body.filename, req.body.filepath);
-        res.status(200).send();
-    } catch (e) {}
+
+        console.log(req.body, "line 56");
+        transcodeVideo(
+            req.body.filename,
+            req.body.filepath,
+            req.body.filetype,
+            res
+        );
+    } catch (e) {
+        console.log(e);
+        throw new Error(e);
+    }
+});
+
+app.post("/trim", async (req, res) => {
+    try {
+        if (!req.body.filename) {
+            console.log(req);
+            throw new Error("no file data");
+        }
+
+        console.log(req.body, "line 56");
+        trimVideo(
+            req.body.filename,
+            req.body.filepath,
+            req.body.start,
+            req.body.end,
+            res
+        );
+    } catch (e) {
+        console.log(e);
+        throw new Error(e);
+    }
 });
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+    console.log(`Veditor app listening on port ${port}`);
+});
+
+process.on("uncaughtException", function (err) {
+    console.log("UNCAUGHT EXCEPTION - keeping process alive:", err); // err.message is "foobar"
 });
