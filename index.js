@@ -23,12 +23,24 @@ const fileStorageEngine = multer.diskStorage({
 const uploads = multer({ storage: fileStorageEngine });
 
 app.use(cors());
-app.use(express.json());
-app.use((_, res, next) => {
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Credentials", true);
+    res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+    res.header(
+        "Access-Control-Allow-Headers",
+        "Origin,X-Requested-With,Content-Type,Accept,content-type,application/json"
+    );
     res.header("Cross-Origin-Opener-Policy", "same-origin");
     res.header("Cross-Origin-Embedder-Policy", "require-corp");
     next();
 });
+app.use(express.json());
+// app.use((_, res, next) => {
+//     res.header("Cross-Origin-Opener-Policy", "same-origin");
+//     res.header("Cross-Origin-Embedder-Policy", "require-corp");
+//     next();
+// });
 
 app.use("/videos", express.static(path.join("__dirname", "./transcoded")));
 
